@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GridGuard AI | AEGIS – Power Outage Intelligence</title>
+    {% load static %}
+    <!-- Leaflet CSS + JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<nav class="navbar navbar-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            ⚡ GridGuard AI – AEGIS (Adaptive Electrical Grid Intelligence System)
+        </span>
+        <span class="text-white-50 small">For Resilient Communities</span>
+    </div>
+</nav>
+
+<div class="container">
+    <div id="map"></div>
+    <div class="row mt-3">
+        <div class="col-md-8 offset-md-2 text-center">
+            <div class="info-panel">
+                <h5>🤖 How AEGIS Helps</h5>
+                <p>Our AI predicts outage risk per grid zone, prioritizes vulnerable populations (elderly, low-income), and shows critical infrastructure like shelters & hospitals.</p>
+                <small class="text-muted">🔴 Red = high risk (>70%) &nbsp;|&nbsp; 🟠 Orange = medium (40-70%) &nbsp;|&nbsp; 🟢 Green = low (<40%)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chatbot widget -->
+<div class="chatbox">
+    <div class="chat-header">
+        <span>⚡</span> AEGIS Assistant
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div>🤖 Hello! Ask me about outage risks, shelters, or how to prepare.</div>
+    </div>
+    <input type="text" id="chatInput" class="form-control" placeholder="Type your question...">
+    <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+</div>
+
+<footer>
+    USAII Global AI Hackathon 2026 – Electrical Engineering for Public Service | Prototype for vulnerable communities
+</footer>
+
+<!-- Custom JavaScript -->
+<script src="{% static 'js/map.js' %}"></script>
+</body>
+</html>
