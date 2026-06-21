@@ -5,6 +5,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
 from predictor.models import GridZone, WeatherData, CriticalInfrastructure, DemographicData
+from django.views.decorators.csrf import csrf_exempt
+import pandas as pd
 
 # Try to load model, but don't crash if missing
 MODEL_PATH = os.path.join(settings.BASE_DIR, 'outage_model.pkl')
@@ -16,7 +18,6 @@ else:
 
 def home(request):
     return render(request, 'predictor/home.html')
-
 
 def debug_status(request):
     import os
@@ -48,7 +49,8 @@ def risk_map_data(request):
     for zone in GridZone.objects.all():
         weather = WeatherData.objects.filter(zone=zone).order_by('-timestamp').first()
         if weather:
-            features = [[weather.wind_speed, weather.rainfall, weather.temperature, zone.equipment_age_years]]
+            features = pd.DataFrame([[weather.wind_speed, weather.rainfall, weather.temperature, zone.equipment_age_years]], 
+                        columns=['wind_speed', 'rainfall', 'temperature', 'equipment_age_years'])
         else:
             # fallback features
             features = [[10, 0, 20, zone.equipment_age_years]]
@@ -81,6 +83,7 @@ def risk_map_data(request):
         })
     return JsonResponse({'zones': zones_data})
 
+@csrf_exempt
 def chatbot_api(request):
     if request.method == 'POST':
         try:
@@ -95,8 +98,15 @@ def chatbot_api(request):
             if not model:
                 return JsonResponse({'reply': "⚠️ AI model not trained. Run 'python manage.py train_model'."})
             
-            # Simple intent matching
-            if any(word in user_msg for word in ['outage', 'power', 'electricity', 'blackout']):
+            # ----- NEW: GREETINGS -----
+            if any(word in user_msg for word in ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon']):
+                reply = "👋 Hello! I'm AEGIS, your outage assistant. Ask me about outage risks, shelters, or how to prepare."
+            
+            elif any(word in user_msg for word in ['thank', 'thanks']):
+                reply = "😊 You're welcome! Stay safe and check the map for real-time risk."
+            
+            # ----- EXISTING INTENT MATCHING (unchanged) -----
+            elif any(word in user_msg for word in ['outage', 'power', 'electricity', 'blackout']):
                 # Find highest risk zone
                 highest_risk = 0
                 highest_zone = None
@@ -137,11 +147,14 @@ def chatbot_api(request):
                 reply = "🔧 Prepare: flashlights, backup power, charge devices. Check map for nearest shelter."
             
             else:
-                reply = "🤖 Ask about 'outage risk', 'shelter', or 'how to prepare'."
+                reply = "🤖 Ask me about 'outage risk', 'shelter', or 'how to prepare' – or just say hello!"
             
             return JsonResponse({'reply': reply})
         
         except Exception as e:
-            return JsonResponse({'reply': f"Error: {str(e)}. Check console for details."})
+            # Log the error to console for debugging
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({'reply': f"⚠️ Error: {str(e)}. Check terminal for details."})
     
     return JsonResponse({'error': 'POST only'})
